@@ -1,3 +1,12 @@
+//// ------------------------------------------------------------
+//// Route Matcher
+//// ------------------------------------------------------------
+////
+//// Route matching engine that finds and executes matching routes
+//// from registered route groups. Handles URL parameter 
+//// extraction, middleware application, and route resolution.
+////
+
 import gleam/dict
 import gleam/http
 import gleam/list
@@ -6,6 +15,15 @@ import glimr/http/kernel
 import glimr/routing/route
 import wisp
 
+/// ------------------------------------------------------------
+/// Apply Route Middleware
+/// ------------------------------------------------------------
+///
+/// Recursively applies middleware to a request in order. The 
+/// first middleware in the list wraps all others, so it has the 
+/// final say on the response. Middleware execute in order 
+/// going in, and reverse order coming out.
+///
 pub fn apply_middleware(
   route_req: route.RouteRequest,
   ctx: context,
@@ -23,6 +41,15 @@ pub fn apply_middleware(
   }
 }
 
+/// ------------------------------------------------------------
+/// Find Matching Route in Groups
+/// ------------------------------------------------------------
+///
+/// Searches through route groups to find a route matching the 
+/// given path and HTTP method. Returns the matched route, and 
+/// extracted URL parameters, and the middleware group. Returns 
+/// Error if no match is found.
+///
 pub fn find_matching_route_in_groups(
   route_groups: List(route.RouteGroup(context)),
   path: String,
@@ -40,6 +67,14 @@ pub fn find_matching_route_in_groups(
   })
 }
 
+/// ------------------------------------------------------------
+/// Get All Routes
+/// ------------------------------------------------------------
+///
+/// Extracts all routes from all route groups into a single flat
+/// list. Useful for debugging, route listing, or determining if
+/// a path exists (for 404 vs 405 status codes).
+///
 pub fn get_all_routes(
   route_groups: List(route.RouteGroup(context)),
 ) -> List(route.Route(context)) {
@@ -47,6 +82,14 @@ pub fn get_all_routes(
   |> list.flat_map(fn(group) { group.routes })
 }
 
+/// ------------------------------------------------------------
+/// Check Path Match
+/// ------------------------------------------------------------
+///
+/// Tests if a URL path matches a route pattern. This Supports 
+/// dynamic parameters like /users/{id}. Compares segment by 
+/// segment, treating parameters as wildcards that match a value
+///
 pub fn matches_path(pattern: String, path: String) -> Bool {
   let pattern_segments = string.split(pattern, "/")
   let path_segments = string.split(path, "/")
@@ -57,6 +100,14 @@ pub fn matches_path(pattern: String, path: String) -> Bool {
   }
 }
 
+/// ------------------------------------------------------------
+/// Find Matching Route
+/// ------------------------------------------------------------
+///
+/// Finds the first route that matches the given path and HTTP 
+/// method. Returns the matched route and extracted parameters, 
+/// or Error if no match is found.
+///
 fn find_matching_route(
   routes: List(route.Route(context)),
   path: String,
@@ -74,6 +125,14 @@ fn find_matching_route(
   })
 }
 
+/// ------------------------------------------------------------
+/// Do Match Segments
+/// ------------------------------------------------------------
+///
+/// Recursively compares path segments, treating parameters 
+/// (in curly braces) as wildcards. Both lists must have the 
+/// same length and all non-parameter segments must match.
+///
 fn do_match_segments(
   pattern_segments: List(String),
   path_segments: List(String),
@@ -94,18 +153,33 @@ fn do_match_segments(
   }
 }
 
+/// ------------------------------------------------------------
+/// Is Param
+/// ------------------------------------------------------------
+///
+/// Checks if a path segment is a parameter by testing if it's 
+/// wrapped in curly braces like {id} or {user_id}.
+///
 fn is_param(segment: String) -> Bool {
   string.starts_with(segment, "{") && string.ends_with(segment, "}")
   // TODO: make this work with {user:id} for example, where user would be
   // the param name, but behind the scenes we can resolve the user by what comes
-  // after the : (in this case id) 
+  // after the : (in this case id)
 }
 
+/// ------------------------------------------------------------
+/// Extract Params
+/// ------------------------------------------------------------
+///
+/// Extracts parameter values from a URL path by comparing it 
+/// against the route pattern. Returns a dictionary that maps 
+/// parameter names to their values from the URL.
+///
 fn extract_params(pattern: String, path: String) -> dict.Dict(String, String) {
   // TODO: if param contains a : use that to extract the correct value
   // and we can possibly throw an error from here like a 404 for example
   // if we get {user:id} and the url value is "10" but a user of id 10
-  // does not exist. That way it doesn't have to be handled every time 
+  // does not exist. That way it doesn't have to be handled every time
   // in the controller method
 
   let pattern_segments = string.split(pattern, "/")
@@ -114,6 +188,15 @@ fn extract_params(pattern: String, path: String) -> dict.Dict(String, String) {
   do_extract_params(pattern_segments, path_segments, dict.new())
 }
 
+/// ------------------------------------------------------------
+/// Do Extract Params
+/// ------------------------------------------------------------
+///
+/// Recursively extracts parameters by walking through pattern 
+/// and path segments simultaneously. When a parameter segment 
+/// is found (like {id}), extracts the parameter name and stores
+/// the corresponding path value.
+///
 fn do_extract_params(
   pattern_segments: List(String),
   path_segments: List(String),
