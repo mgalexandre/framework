@@ -1,7 +1,26 @@
+//// ------------------------------------------------------------
+//// Error Handler
+//// ------------------------------------------------------------
+////
+//// Provides default error response handlers for HTML and JSON
+//// formats. Intercepts error status codes and replaces empty
+//// responses with user-friendly error messages.
+////
+
 import gleam/bool
 import gleam/json
 import wisp
 
+/// ------------------------------------------------------------
+/// Default HTML Error Responses
+/// ------------------------------------------------------------
+///
+/// Middleware that adds HTML error messages to error responses.
+/// Wraps the request handler and checks the response status.
+/// Success responses (2xx) pass through unchanged. Error status
+/// codes receive default HTML error pages. Can be overridden by
+/// implementing custom error handlers in your application.
+///
 pub fn default_html_responses(
   handle_request: fn() -> wisp.Response,
 ) -> wisp.Response {
@@ -41,6 +60,16 @@ pub fn default_html_responses(
   }
 }
 
+/// ------------------------------------------------------------
+/// Default JSON Error Responses
+/// ------------------------------------------------------------
+///
+/// Middleware that adds JSON error messages to error responses.
+/// Wraps the request handler and checks the response status.
+/// Success responses (2xx) pass through unchanged. Error status
+/// codes receive JSON error objects with an "error" field. Used
+/// for API routes to ensure consistent JSON error formatting.
+///
 pub fn default_json_responses(
   handle_request: fn() -> wisp.Response,
 ) -> wisp.Response {

@@ -112,8 +112,14 @@ pub fn get_param_or(req: RouteRequest, key: String, default: String) -> String {
 /// ------------------------------------------------------------
 ///
 /// Creates a GET route with the specified path and handler.
-/// Path is normalized (adds leading slash, removes
-/// trailing slash). Supports parameters like /users/{id}.
+/// Path is normalized (adds leading slash, removes trailing 
+/// slash). Supports parameters like /users/{id}.
+///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.get("/users", user_controller.index)
+/// ```
 ///
 pub fn get(path: String, handler: RouteHandler(context)) -> Route(context) {
   Route(
@@ -130,8 +136,14 @@ pub fn get(path: String, handler: RouteHandler(context)) -> Route(context) {
 /// ------------------------------------------------------------
 ///
 /// Creates a POST route with the specified path and handler.
-/// Path is automatically normalized. Post is Typically used 
-/// for creating resources or submitting forms.
+/// Path is normalized (adds leading slash, removes trailing 
+/// slash). Supports parameters like /users/{id}.
+///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.post("/users", user_controller.store)
+/// ```
 ///
 pub fn post(path: String, handler: RouteHandler(context)) -> Route(context) {
   Route(
@@ -148,8 +160,14 @@ pub fn post(path: String, handler: RouteHandler(context)) -> Route(context) {
 /// ------------------------------------------------------------
 ///
 /// Creates a PUT route with the specified path and handler.
-/// Path is automatically normalized. Put is Typically used for 
-/// updating entire resources.
+/// Path is normalized (adds leading slash, removes trailing 
+/// slash). Supports parameters like /users/{id}.
+///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.put("/users/{user_id}", user_controller.update)
+/// ```
 ///
 pub fn put(path: String, handler: RouteHandler(context)) -> Route(context) {
   Route(
@@ -166,8 +184,14 @@ pub fn put(path: String, handler: RouteHandler(context)) -> Route(context) {
 /// ------------------------------------------------------------
 ///
 /// Creates a DELETE route with the specified path and handler.
-/// Path is automatically normalized. Delete is typically used 
-/// for deleting resources.
+/// Path is normalized (adds leading slash, removes trailing 
+/// slash). Supports parameters like /users/{id}.
+///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.delete("/users/{user_id}", user_controller.delete)
+/// ```
 ///
 pub fn delete(path: String, handler: RouteHandler(context)) -> Route(context) {
   Route(
@@ -187,6 +211,13 @@ pub fn delete(path: String, handler: RouteHandler(context)) -> Route(context) {
 /// the handler and can modify the request or response. Use the
 /// pipe operator to chain.
 ///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.get(...)
+///   |> router.middleware([logger.handle])
+/// ```
+///
 pub fn middleware(
   route: Route(context),
   middleware: List(Middleware(context)),
@@ -202,6 +233,13 @@ pub fn middleware(
 /// Names should be unique and descriptive, like "users.show" or
 /// "admin.dashboard". Use the pipe operator to chain.
 ///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.get(...)
+///   |> router.name("users.get")
+/// ```
+///
 pub fn name(route: Route(context), name: String) -> Route(context) {
   Route(..route, name: name)
 }
@@ -213,6 +251,18 @@ pub fn name(route: Route(context), name: String) -> Route(context) {
 /// Applies middleware to multiple routes at once. Middleware
 /// is prepended to any existing route-level middleware, so 
 /// group middleware executes first (outermost wrapper).
+///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.group_middleware([logger.handle], [
+///   [
+///     router.get(...),
+///     router.get(...),
+///     router.post(...),
+///   ]
+/// ])
+/// ```
 ///
 pub fn group_middleware(
   middleware: List(Middleware(context)),
@@ -231,6 +281,18 @@ pub fn group_middleware(
 /// (/v1/users) or organizing by section (/admin/users). The
 /// prefix is automatically normalized.
 ///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.group_path_prefix("/users", [
+///   [
+///     router.get(...),
+///     router.get(...),
+///     router.post(...),
+///   ]
+/// ])
+/// ```
+///
 pub fn group_path_prefix(
   prefix: String,
   routes: List(List(Route(context))),
@@ -247,6 +309,18 @@ pub fn group_path_prefix(
 /// Adds a name prefix to multiple routes. This is Useful for 
 /// namespacing route names like "admin." or "api.v1.". The 
 /// prefix is prepended to each route's existing name.
+///
+/// ------------------------------------------------------------
+/// Example:
+/// ```gleam
+/// route.group_name_prefix("users.", [
+///   [
+///     router.get(...),
+///     router.get(...),
+///     router.post(...),
+///   ]
+/// ])
+/// ```
 ///
 pub fn group_name_prefix(
   name: String,
